@@ -235,9 +235,6 @@ plot_frbca <- function(outout, n_floors=4, system='RCMF') {
   label_begin <- 'Sensitivity Analysis: Benefit-cost ratios for'
   label_end <- 'archetypes, relative to baseline ASCE 7-16 design.'
   plot.sen <- sen %>%
-    ## tidyr::pivot_longer(cols=starts_with('bcr'), names_to='bcr', values_to='y') %>%
-    ## ggplot(aes(x = sensitivity, y = bcr)) +
-    ## geom_crossbar(aes(ymin = bcr_low, ymax = bcr_high), width = 0.5, fill = "grey") +
     ggplot() +
     geom_segment(aes(x=parameter, xend=parameter, y=bcr_low, yend=bcr_high),
                  linewidth = 5, colour = "red", alpha = 0.6) +
