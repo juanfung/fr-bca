@@ -217,7 +217,7 @@ frbca <- function(eal, cost, params) {
     return(models)
 }
 
-plot_frbca <- function(outout, n_floors=4, system='RCMF') {
+plot_frbca <- function(output, n_floors=4, system='RCMF') {
   ## Purpose: post-process data and generate plot for sensitivity analysis
   plot_df <- output %>%
     dplyr::filter(!is.na(bcr)) %>%
@@ -247,7 +247,7 @@ plot_frbca <- function(outout, n_floors=4, system='RCMF') {
     theme_light() +
     theme(legend.position='bottom') +
     labs(
-      title=paste(label_begin, paste0(total_floors, '-story'), system, label_end),
+      title=paste(label_begin, paste0(n_floors, '-story'), system, label_end),
       x='Parameter',
       y='Benefit-cost ratio')
 return(plot.sen)
