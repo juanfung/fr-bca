@@ -133,7 +133,7 @@ pv_benefit <- function(model, params, label='base') {
         pv_loss(p) %>%
         dplyr::select(all_of(c(join_cols, loss_cols))) %>%
         dplyr::rowwise() %>%
-        dplyr::mutate(loss_total=sum(across(loss_cols))) %>%
+        dplyr::mutate(loss_total=sum(across(all_of(loss_cols)))) %>%
         dplyr::ungroup() %>%
         dplyr::mutate(delta_loss=loss_total[intervention == 0] - loss_total) %>%
         dplyr::mutate(benefit=delta_loss * ((1 - (1+p$delta)^(-p$T))/p$delta))
@@ -217,3 +217,41 @@ frbca <- function(eal, cost, params) {
     return(models)
 }
 
+plot_frbca <- function(outout, n_floors=4, system='RCMF') {
+  ## Purpose: post-process data and generate plot for sensitivity analysis
+  plot_df <- output %>%
+    dplyr::filter(!is.na(bcr)) %>%
+    dplyr::filter(total_floors == n_floors) %>%
+    dplyr::select(model, bcr, label, parameter)
+  base <- plot_df %>%
+    dplyr::filter(label == 'base') %>%
+    dplyr::select(!c(label, parameter))
+  sen <-plot_df %>%
+    dplyr::filter(label != 'base') %>%
+    tidyr::pivot_wider(names_from=label, values_from=bcr) %>%
+    dplyr::left_join(base, by='model') %>%
+    dplyr::rename(bcr_low=low, bcr_high=high)
+  ## generate plot
+  label_begin <- 'Sensitivity Analysis: Benefit-cost ratios for'
+  label_end <- 'archetypes, relative to baseline ASCE 7-16 design.'
+  plot.sen <- sen %>%
+    ## tidyr::pivot_longer(cols=starts_with('bcr'), names_to='bcr', values_to='y') %>%
+    ## ggplot(aes(x = sensitivity, y = bcr)) +
+    ## geom_crossbar(aes(ymin = bcr_low, ymax = bcr_high), width = 0.5, fill = "grey") +
+    ggplot() +
+    geom_segment(aes(x=parameter, xend=parameter, y=bcr_low, yend=bcr_high),
+                 linewidth = 5, colour = "red", alpha = 0.6) +
+    geom_segment(aes(x=parameter, xend=parameter, y=bcr-0.001, yend=bcr+0.001),
+                 linewidth = 5, colour = "black") +
+    geom_hline(yintercept=1, colour='red') +
+    coord_flip() +
+    facet_wrap(~model, ncol=1) +
+    ## geom_hline(data=rcmf, aes(yintercept=bcr)) +
+    theme_light() +
+    theme(legend.position='bottom') +
+    labs(
+      title=paste(label_begin, paste0(total_floors, '-story'), system, label_end),
+      x='Parameter',
+      y='Benefit-cost ratio')
+return(plot.sen)
+}
